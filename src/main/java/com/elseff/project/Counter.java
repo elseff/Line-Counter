@@ -8,6 +8,7 @@ import java.util.Scanner;
 
 public class Counter {
     private static int total = 0;
+    private static int countClasses = 0;
 
     public static void main(String[] args){
         String pathToProject = "D:\\dev\\LineCounter"; // HERE PATH TO YOUR JAVA PROJECT
@@ -15,7 +16,7 @@ public class Counter {
 
         count(project);
 
-        System.out.printf("\nProject %s has total %d lines", project, total);
+        System.out.printf("\nProject %s has total %d lines and %d classes", project, total, countClasses);
     }
 
     public static void count(File file) {
@@ -36,6 +37,7 @@ public class Counter {
                     count++;
                 }
                 System.out.printf("%s has %d lines\n", file.getName(), count);
+                countClasses++;
             }
         } catch (FileNotFoundException exception) {
             exception.printStackTrace();
