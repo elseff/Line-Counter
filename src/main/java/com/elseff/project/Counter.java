@@ -2,46 +2,86 @@ package com.elseff.project;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Counter {
-    private static int total = 0;
-    private static int countClasses = 0;
+    private final Map<File, Integer> files;
+    private final String project;
 
-    public static void main(String[] args){
-        String pathToProject = "D:\\dev\\LineCounter"; // HERE PATH TO YOUR JAVA PROJECT
-        File project = new File(pathToProject);
-
-        count(project);
-
-        System.out.printf("\nProject %s has total %d lines and %d classes", project, total, countClasses);
+    public Counter(String project) {
+        this.project = project;
+        files = new HashMap<>();
     }
 
-    public static void count(File file) {
-        if (file.isFile())
-            total+=countLines(file);
-        else if (file.isDirectory())
-            Arrays.stream(Objects.requireNonNull(file.listFiles())).forEach(Counter::count);
+    public void start() {
+        findFiles(new File(project));
     }
 
-    public static int countLines(File file) {
+    private void findFiles(File file) {
+        if (file.isFile()) {
+            if (file.getName().endsWith(".java"))
+                files.put(file, countLinesInFile(file));
+        } else if (file.isDirectory())
+            Arrays.stream(Objects.requireNonNull(file.listFiles())).forEach(this::findFiles);
+    }
+
+    public void printFilesInfo() {
+        files.forEach((key, value) -> System.out.printf("%s has %d lines\n", key.getName(), value));
+    }
+
+    private int countLinesInFile(File file) {
         int count = 0;
         Scanner scanner;
         try {
-            if(file.getName().endsWith(".java")) {
-                scanner = new Scanner(file);
-                while (scanner.hasNextLine()) {
-                    scanner.nextLine();
-                    count++;
-                }
-                System.out.printf("%s has %d lines\n", file.getName(), count);
-                countClasses++;
+            scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                scanner.nextLine();
+                count++;
             }
         } catch (FileNotFoundException exception) {
             exception.printStackTrace();
         }
         return count;
+    }
+
+    public Optional<Map.Entry<File, Integer>> getMaxLinesFile() {
+        int max = files
+                .values()
+                .stream()
+                .max(Comparator.naturalOrder())
+                .orElse(0);
+
+        return files
+                .entrySet()
+                .stream()
+                .filter(entry ->
+                        entry.getValue().equals(max))
+                .findFirst();
+    }
+
+    public Optional<Map.Entry<File, Integer>> getMinLinesFile() {
+        int min = files
+                .values()
+                .stream()
+                .min(Comparator.naturalOrder())
+                .orElse(0);
+        return files
+                .entrySet()
+                .stream()
+                .filter(entry->
+                        entry.getValue().equals(min))
+                .findFirst();
+    }
+
+    public Integer getTotal() {
+        return files.values().stream().mapToInt(value -> value).sum();
+    }
+
+    public String getProject() {
+        return project;
+    }
+
+    public Integer getCountClasses() {
+        return files.values().size();
     }
 }
